@@ -27,10 +27,8 @@ def main(args):
             pred = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True).strip().lower()
             ref = item["correct_answer"].strip().lower()
             
-            # Accuracy
             if ref in pred: exact_matches += 1
                 
-            # 9 ROUGE Scores
             scores = scorer.score(ref, pred)
             rouge_totals["r1_p"] += scores['rouge1'].precision
             rouge_totals["r1_r"] += scores['rouge1'].recall
@@ -42,7 +40,6 @@ def main(args):
             rouge_totals["rl_r"] += scores['rougeL'].recall
             rouge_totals["rl_f"] += scores['rougeL'].fmeasure
 
-    # Calculate Averages
     n = len(eval_subset)
     final_results = {k: v / n for k, v in rouge_totals.items()}
     final_results["Exact_Match_Accuracy"] = exact_matches / n
