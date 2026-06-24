@@ -36,7 +36,7 @@ def prepare_model_for_sublayer_dropping(model):
     return model
 
 def calculate_accuracy(model, calibration_data, tokenizer):
-    """Calculates a_i (accuracy) for the calibration formula[cite: 158]."""
+    """Calculates accuracy for the calibration formula."""
     correct = 0
     model.eval()
     with torch.no_grad():
@@ -50,7 +50,7 @@ def calculate_accuracy(model, calibration_data, tokenizer):
     return (correct / len(calibration_data)) * 100.0
 
 def scan_sublayer_importance(model, sublayer_type, layer_idx, calibration_data, tokenizer, delta=1e-5):
-    """Implements Sensitivity-based Scoring formula from the paper[cite: 159]."""
+    """Implements Sensitivity-based Scoring formula from the paper."""
     target_layer = model.model.layers[layer_idx]
     originally_dropped = target_layer.mha_dropped if sublayer_type == "mha" else target_layer.mlp_dropped
     
@@ -61,7 +61,7 @@ def scan_sublayer_importance(model, sublayer_type, layer_idx, calibration_data, 
     # Calculate a_i
     a_i = calculate_accuracy(model, calibration_data, tokenizer)
     
-    # Formula: s_{i,scan} = (100 - a_i) / ((1 + delta^2) + (1 + delta) * a_i) [cite: 159]
+    # Formula: s_{i,scan} = (100 - a_i) / ((1 + delta^2) + (1 + delta) * a_i)
     s_i_scan = (100.0 - a_i) / ((1 + delta**2) + (1 + delta) * a_i)
     
     # Restore
@@ -71,7 +71,7 @@ def scan_sublayer_importance(model, sublayer_type, layer_idx, calibration_data, 
     return s_i_scan
 
 def compute_frobenius_norm(model, sublayer_type, layer_idx):
-    """Implements Activation-based Scoring using Frobenius norm[cite: 178]."""
+    """Implements Activation-based Scoring using Frobenius norm."""
     layer = model.model.layers[layer_idx].original_layer
     target_module = layer.self_attn.q_proj if sublayer_type == "mha" else layer.mlp.gate_proj
     weight_matrix = target_module.weight.data.float()
@@ -79,7 +79,7 @@ def compute_frobenius_norm(model, sublayer_type, layer_idx):
     return f_norm
 
 def apply_sparse_update(model, calibration_data, tokenizer, r=0.25):
-    """Freezes 75% of the network based on initial calibration scores[cite: 250, 264]."""
+    """Freezes 75% of the network based on initial calibration scores."""
     print(f"Applying Sparse Update (r={r}). Scanning initial importance...")
     scores = []
     num_blocks = len(model.model.layers)
@@ -109,7 +109,7 @@ def apply_sparse_update(model, calibration_data, tokenizer, r=0.25):
     return model
 
 def drop_one_least_important_sublayer(model, calibration_data, tokenizer):
-    """Algorithm 1: Two-step Target Selection[cite: 97, 282]."""
+    """Algorithm 1: Two-step Target Selection."""
     num_blocks = len(model.model.layers)
     candidates = []
 
@@ -122,14 +122,14 @@ def drop_one_least_important_sublayer(model, calibration_data, tokenizer):
             score = scan_sublayer_importance(model, "mlp", i, calibration_data, tokenizer)
             candidates.append(("mlp", i, score))
             
-    # Find the minimum score (least important) [cite: 153]
+    # Find the minimum score (least important)
     min_score = min([c[2] for c in candidates])
     ties = [c for c in candidates if abs(c[2] - min_score) < 1e-4]
     
     if len(ties) == 1:
         best_sublayer_type, best_layer_idx, _ = ties[0]
     else:
-        # Tie-breaker: Maximize Frobenius Norm [cite: 175, 178]
+        # Tie-breaker: Maximize Frobenius Norm
         highest_norm = -1
         for sub_type, idx, _ in ties:
             norm = compute_frobenius_norm(model, sub_type, idx)
