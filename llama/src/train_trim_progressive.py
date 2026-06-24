@@ -17,9 +17,9 @@ def main(args):
     
     dataset = load_dataset("sciq")
     formatted_dataset = dataset.map(format_sciq_prompt)
-    calibration_data = dataset["train"].select(range(20)) # Calibration dataset size
+    calibration_data = dataset["train"].select(range(20))
     
-    # 1. Apply Sparse Update Regularization (r=1/4) [cite: 264]
+    # Apply Sparse Update Regularization (r=1/4)
     model = apply_sparse_update(model, calibration_data, tokenizer, r=0.25)
     
     total_sublayers = 64
@@ -27,13 +27,12 @@ def main(args):
     drop_40 = int(total_sublayers * 0.4)
     drop_50 = int(total_sublayers * 0.5)
     
-    # 2. Iterative Fine-Tuning and Dropping 
     for drop_round in range(1, drop_50 + 1):
         print(f"\n=== Algorithm 1: Iteration {drop_round}/{drop_50} ===")
         
         training_args = TrainingArguments(
             output_dir="./results/llama_progressive_logs",
-            max_steps=50, # Approximating 1 epoch of rapid specialization [cite: 73]
+            max_steps=50, 
             per_device_train_batch_size=2,
             gradient_accumulation_steps=4,
             learning_rate=2e-5,
