@@ -27,16 +27,15 @@ The experiments are split into two independent tracks:
 ---
 
 ## Part 2: LLaMA-7B (SciQ Dataset)
-**Methodology:** Implements continuous progressive sub-layer dropping (Algorithm 1).
+**Methodology:** Implements continuous progressive sub-layer dropping (Algorithm 1) using $r=1/4$ sparse update regularization, compared against standard full-parameter fine-tuning.
 
-| Compression Ratio | Exact Match Accuracy | R-1 (F1) | R-L (F1) | 
-| :--- | :---: | :---: | :---: |
-| Baseline (0% dropped) | *TBD* | *TBD* | *TBD* |
-| Trimmed (30% dropped)| *TBD* | *TBD* | *TBD* |
-| Trimmed (40% dropped)| *TBD* | *TBD* | *TBD* |
-| Trimmed (50% dropped)| *TBD* | *TBD* | *TBD* |
-
----
+| Model Variant | Training Method | Exact Match Accuracy | R-1 (F1) | R-L (F1) | 
+| :--- | :--- | :---: | :---: | :---: |
+| Baseline (100% size) | No Training (Zero-Shot) | *TBD* | *TBD* | *TBD* |
+| Baseline (100% size) | Full Fine-Tuning | *TBD* | *TBD* | *TBD* |
+| Trimmed (30% dropped)| TrimLLM (Sparse FT) | *TBD* | *TBD* | *TBD* |
+| Trimmed (40% dropped)| TrimLLM (Sparse FT) | *TBD* | *TBD* | *TBD* |
+| Trimmed (50% dropped)| TrimLLM (Sparse FT) | *TBD* | *TBD* | *TBD* |
 
 ## Execution Setup
 
