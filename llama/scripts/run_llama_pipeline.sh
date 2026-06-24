@@ -19,15 +19,17 @@ mkdir -p logs
 
 MODEL_ID="meta-llama/Llama-2-7b-hf"
 
-echo "=== STAGE 1: EVALUATING BASE LLaMA-7B ==="
-python src/evaluate_sciq.py --model_path $MODEL_ID --run_name "llama_base"
+echo "=== STAGE 1: EVALUATING BASE LLaMA-7B (ZERO-SHOT) ==="
+python src/evaluate_sciq.py --model_path $MODEL_ID --run_name "llama_zero_shot"
 
-echo "=== STAGE 2: RUNNING ALGORITHM 1 PROGRESSIVE TRIMMING ==="
+echo "=== STAGE 2: RUNNING FULL FINE-TUNING BASELINE ==="
+python src/train_full.py --model_id $MODEL_ID
+python src/evaluate_sciq.py --model_path "./saved_models/llama_full_ft_complete" --run_name "llama_full_ft"
+
+echo "=== STAGE 3: RUNNING ALGORITHM 1 PROGRESSIVE TRIMMING ==="
 python src/train_trim_progressive.py --model_id $MODEL_ID
 
-echo "=== STAGE 3: EVALUATING COMPRESSED MODELS ==="
+echo "=== STAGE 4: EVALUATING COMPRESSED MODELS ==="
 python src/evaluate_sciq.py --model_path "./saved_models/llama_trim_30percent" --run_name "llama_trim_30"
 python src/evaluate_sciq.py --model_path "./saved_models/llama_trim_40percent" --run_name "llama_trim_40"
 python src/evaluate_sciq.py --model_path "./saved_models/llama_trim_50percent" --run_name "llama_trim_50"
-
-echo "=== PIPELINE COMPLETE ==="
